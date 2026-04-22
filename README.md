@@ -112,7 +112,7 @@ Installed:
 * WordPress
 
 ![EC2 Instance](./screenshots/ec2.png)
-![EC2 Instance Security Group](./screenshots/ec2 security group.png)
+![EC2 Instance Security Group](./screenshots/ec2-security-group.png)
 
 Install Apache web server
 ![Apache Web Server](./screenshots/install-httpd.png)
@@ -121,15 +121,15 @@ Install Apache web server
 ![Apache Web Server](./screenshots/result-httpd.png)
 
 Install php
-![PHP](./screenshots/install php.png)
-![PHP](./screenshots/install 6 php.png)
+![PHP](./screenshots/install-php.png)
+![PHP](./screenshots/install-6-php.png)
 
 Install SQL
-![SQL](./screenshots/install 7 sql.png)
+![SQL](./screenshots/install-7-sql.png)
 
 Install wordpress tar
-![wordpress](./screenshots/install 8 wordpress tar.png)
-![wordpress](./screenshots/install 9 config.png)
+![wordpress](./screenshots/install-8-wordpress-tar.png)
+![wordpress](./screenshots/install-9-config.png)
 
 
 ---
@@ -164,8 +164,8 @@ Configured WordPress by editing `wp-config.php`:
 * Username & password
 * RDS endpoint
 
-![WordPress Setup](./screenshots/database connection.png)
-![WordPress Setup](./screenshots/databse connection2.png)
+![WordPress Setup](./screenshots/database-connection.png)
+![WordPress Setup](./screenshots/databse-connection2.png)
 
 Updated WordPress security keys (salts) in `wp-config.php` to enhance authentication security.
 
@@ -173,10 +173,10 @@ Salts are cryptographic keys used to secure user sessions and cookies, preventin
 
 This step ensures the application follows basic security best practices.
 
-![WordPress Setup](./screenshots/database connection3.png)
+![WordPress Setup](./screenshots/database-connection3.png)
 ![WordPress Setup](./screenshots/databse4.png)
-![WordPress Setup](./screenshots/databse 5.png)
-![WordPress Setup](./screenshots/databse 6.png)
+![WordPress Setup](./screenshots/databse-5.png)
+![WordPress Setup](./screenshots/databse-6.png)
 ---
 
 ### 9. Final Output
@@ -197,8 +197,8 @@ http://44.193.210.31/wp-admin
 
 Configure Route 53 for domain name
 
-![Route 53](./screenshots/route 53.png)
-![Route 53 Output](./screenshots/route 53 output.png)
+![Route 53](./screenshots/route-53.png)
+![Route 53 Output](./screenshots/route-53-output.png)
 
 ##  AWS Services Used
 
