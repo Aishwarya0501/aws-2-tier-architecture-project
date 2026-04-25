@@ -11,6 +11,11 @@ The architecture is divided into:
 
 It follows real-world cloud practices such as **network isolation, private database access, and controlled communication using security groups**.
 
+The architecture was further enhanced into a **highly available Multi-AZ setup** by integrating:
+- Application Load Balancer (ALB)
+- Auto Scaling
+- RDS Multi-AZ failover
+- 
 ---
 
 ## Architecture
@@ -29,6 +34,7 @@ It follows real-world cloud practices such as **network isolation, private datab
 * Users access the application via EC2 public IP
 * EC2 communicates securely with RDS inside private subnet
 
+![Architecture](./screenshots/architecture.png)
 ---
 
 ## Project Walkthrough
@@ -200,46 +206,225 @@ Configure Route 53 for domain name
 ![Route 53](./screenshots/route-53.png)
 ![Route 53 Output](./screenshots/route-53-output.png)
 
-##  AWS Services Used
+---
+
+## High Availability Upgrade (Multi-AZ Architecture)
+
+To improve fault tolerance and scalability, the architecture was enhanced to be **highly available across all layers**.
+
+---
+
+### 11. Multi-AZ Network Setup
+
+![Architecture](./screenshots/multiaz.png)
+Created an additional public subnet in a different Availability Zone.
+
+* Public Subnet 2: `10.0.3.0/24`
+* Associated with public route table
+* Enabled auto-assign public IP
+
+This ensures the application is not dependent on a single Availability Zone.
+
+![Multi AZ Subnets](./screenshots/multi-az-subnets.png)
+![Route Tab;e](./screenshots/multi-az-subnets2.png)
+---
+
+### 12. AMI Creation
+
+Created an Amazon Machine Image (AMI) from the existing EC2 instance.
+
+This AMI contains:
+
+* Installed WordPress
+* Apache & PHP configuration
+* Application setup
+
+This allows launching identical EC2 instances without repeating setup.
+
+![AMI Creation](./screenshots/ami.png)
+
+---
+
+### 13. Launch Template Configuration
+
+Created a Launch Template using the custom AMI.
+
+Includes:
+
+* Instance type: t2.micro
+* Security group: Web Server SG
+* Key pair
+* User data script to start Apache
+
+This standardizes EC2 instance creation.
+
+![Launch Template](./screenshots/launch-template.png)
+
+---
+
+### 14. Auto Scaling Group (ASG)
+
+Configured Auto Scaling Group using the launch template.
+
+* Subnets: Both public subnets (Multi-AZ)
+* Desired capacity: 2
+* Min: 1
+* Max: 4
+
+This ensures:
+
+* Automatic instance replacement
+* Scaling based on demand
+* High availability across AZs
+
+![Auto Scaling](./screenshots/asg.png)
+
+---
+
+### 15. Target Group Configuration
+
+Created a target group for EC2 instances.
+
+* Protocol: HTTP
+* Port: 80
+* Health check path: `/`
+
+This allows load balancer to route traffic only to healthy instances.
+
+![Target Group](./screenshots/tg.png)
+
+---
+
+### 16. Application Load Balancer (ALB)
+
+Created an internet-facing Application Load Balancer.
+
+* Deployed across both public subnets
+* Attached target group
+* Configured security group (HTTP access)
+
+The ALB distributes traffic across multiple EC2 instances.
+
+![Load Balancer](./screenshots/alb.png)
+
+---
+
+### 17. Application Access via Load Balancer
+
+Application is now accessed using ALB DNS instead of EC2 public IP.
+
+This ensures:
+
+* No direct dependency on single instance
+* Improved availability and reliability
+
+![ALB Output](./screenshots/alb.png)
+
+---
+
+### 18. RDS Multi-AZ Deployment
+
+Enabled Multi-AZ for the RDS instance.
+
+* Automatic standby database created in another AZ
+* Synchronous replication enabled
+* Automatic failover supported
+
+![RDS Multi-AZ](./screenshots/rds-az.png)
+
+---
+
+### 19. Read Replica
+
+Created read replica for scaling read operations.
+
+* Offloads read traffic from primary database
+* Improves performance under heavy load
+
+![Read Replica](./screenshots/rds-multiaz.png)
+
+---
+
+### 20. Route 53 Update
+
+Updated Route 53 record to point to ALB instead of EC2.
+
+* Used Alias record
+* Improved reliability and scalability
+
+![Route 53 ALB](./screenshots/route53-multiaz.png)
+
+---
+
+## Final Output
+
+After configuring Route 53, the application is accessible via custom domain.
+
+Traffic flows through:
+Route 53 → ALB → EC2 → RDS
+No direct dependency on EC2 public IP
+Load balancer handles traffic distribution
+
+![Route 53 Output](./screenshots/route-53-output.png)
+
+---
+
+## 🧰 AWS Services Used
 
 * Amazon VPC
-* Amazon EC2
-* Amazon RDS (MySQL)
+* Amazon EC2 (Auto Scaling)
+* Application Load Balancer (ALB)
+* Amazon RDS (MySQL, Multi-AZ, Read Replica)
+* Amazon Route 53
 * Internet Gateway
 * Route Tables
 * Security Groups
-
 
 ---
 
 ## Security Best Practices Implemented
 
-* Database deployed in private subnet
-* No public access to RDS
-* Security group chaining (EC2 → RDS)
-* Restricted inbound access
-* Custom VPC instead of default VPC
+* Database deployed in **private subnets**
+* RDS **not publicly accessible**
+* Implemented **security group chaining** (ALB → EC2 → RDS)
+* Restricted SSH access to specific IP
+* Isolated layers using **public and private subnets**
+* Avoided direct access to EC2 by routing traffic through ALB
+* Used custom VPC for controlled networking
 
 ---
 
 ## Key Learnings
 
-* Designing VPC from scratch
-* Understanding public vs private subnets
-* Configuring secure communication between services
-* Deploying real-world applications on AWS
-* Managing EC2, RDS, and networking 
+* Designing scalable and highly available AWS architectures
+* Understanding **Multi-AZ deployment and failover mechanisms**
+* Working with **Auto Scaling and Load Balancers**
+* Implementing **secure communication between tiers**
+* Managing real-world cloud infrastructure components
+* Understanding difference between **High Availability vs Scalability**
+* Debugging real AWS deployment issues
 
 ---
+
 ## Challenges Faced
 
-- Initial DB subnet group creation failed due to single AZ
-- Resolved by adding a second private subnet in a different Availability Zone
+* Initial DB subnet group creation failed due to single AZ
+* Resolved by adding private subnets across multiple AZs
+* Understanding ALB + Target Group integration
+* Debugging application downtime due to service/config issues
+* Handling Route 53 DNS propagation delay
+
 ---
 
 ## Design Decisions
 
-- Used private subnets for RDS to ensure database is not publicly accessible
-- Implemented security group chaining to restrict database access only from EC2
-- Used separate public and private subnets to isolate web and database layers
-- Configured DB subnet group across multiple AZs for high availability readiness
+* Used **private subnets for RDS** to enhance security
+* Introduced **ALB instead of direct EC2 access** for better availability
+* Used **Auto Scaling + AMI + Launch Template** for scalable web layer
+* Enabled **Multi-AZ deployment** to ensure failover capability
+* Added **Read Replica** to handle read-heavy workloads
+* Updated Route 53 to point to ALB instead of EC2 IP
+* Balanced simplicity and real-world architecture design
+
+---
+
